@@ -1,0 +1,8 @@
+PySide6
+mne
+numpy
+pandas
+scipy
+edfio
+eeglabio
+pybv
