@@ -1,0 +1,49 @@
+name: Build EEG Converter for Linux
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libopengl0 libxkbcommon-x11-0 libxcb-cursor0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller
+
+      - name: Build Linux application
+        run: |
+          pyinstaller --noconfirm --clean --onedir --windowed \
+            --name EEGUniversalConverter \
+            --add-data "assets:assets" \
+            --collect-all mne \
+            --collect-all edfio \
+            --collect-all eeglabio \
+            --collect-all pybv \
+            --hidden-import scipy.io \
+            --hidden-import conversion_bundle \
+            --hidden-import edf_export \
+            --hidden-import multiformat \
+            app.py
+
+      - name: Upload Linux build
+        uses: actions/upload-artifact@v4
+        with:
+          name: EEGUniversalConverter-Ubuntu24.04-x86_64
+          path: dist/EEGUniversalConverter/
